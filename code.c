@@ -130,44 +130,64 @@ int main(){
 	size_t len;
 	printf("Text Editor\n");
 	/*There is no save operation because all the operations are done on the file, that is file is not loaded to memory*/
-	printf("Options:\n\t1 Open File\n\t2 Save As\n\t3 Close File\n\t4 Copy Text\n\t5 Cut Text\n\t6 Delete Text\n\t7 Save and Quit\n\nOption: ");
-	while((op = getchar()) != '7'){
+	printf("Options:\n\t1 New\n\t2 Open File\n\t3 Save As\n\t4 Save and Close File\n\t5 Copy Text\n\t6 Cut Text\n\t7 Delete Text\n\t8 Display Content\n\t9 Quit\n\nOption: ");
+	while((op = getchar()) != '9'){
 		switch(op){
-			case '1':
-				if(fid == NULL){
-					printf("\tFilename: ");
-					scanf(" %s", &str);
-					fid = fopen(str, "r+");
-					if(fid != NULL){
-						printf("\tFile successfully opened\n");
-					}else{
-						printf("\tFile does not exist\n");
-					}
+		case '1':
+			if(fid == NULL){
+				printf("\tFilename: ");
+				scanf(" %s", &str);
+				fid = fopen(str, "w+");
+				fid = freopen(NULL, "r+", fid);
+				if(fid != NULL){
+					printf("\tFile successfully created\n");
 				}else{
-					printf("\tA file is already open\n");
+					printf("\tFile does not exist\n");
 				}
-				break;
-			case '2': printf("op: %c\n", op);
-				break;
-			case '3':
-				if(fid == NULL){
-					printf("\tNo file opened\n");
+			}else{
+				printf("\tA file is already open\n");
+			}
+			break;
+		case '2':
+			if(fid == NULL){
+				printf("\tFilename: ");
+				scanf(" %s", &str);
+				fid = fopen(str, "r+");
+				if(fid != NULL){
+					printf("\tFile successfully opened\n");
 				}else{
-					fclose(fid);
-					fid = NULL;
-					printf("\tFile closed\n");
+					printf("\tFile does not exist\n");
 				}
-				break;
-			case '4': printf("op: %c\n", op);
-				break;
-			case '5': printf("op: %c\n", op);
-				break;
-			case '6': printf("op: %c\n", op);
-				break;
-			case '7': printf("op: %c\n", op);
-				break;
-			default: printf("op: %c\n", op);
-				break;
+			}else{
+				printf("\tA file is already open\n");
+			}
+			break;
+		case '3': printf("op: %c\n", op);
+			break;
+		case '4':
+			if(fid == NULL){
+				printf("\tNo file opened\n");
+			}else{
+				fclose(fid);
+				fid = NULL;
+				printf("\tFile closed\n");
+			}
+			break;
+		case '5': printf("op: %c\n", op);
+			break;
+		case '6': printf("op: %c\n", op);
+			break;
+		case '7': printf("op: %c\n", op);
+			break;
+		case '8':
+			if(fid != NULL){
+				display(fid);
+			}else{
+				printf("\tNo file opened\n");
+			}
+			break;
+		default: printf("\tNot a valid option!");
+			break;
 		}
 		FLUSH;
 		printf("Option: ");
