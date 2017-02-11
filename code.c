@@ -19,7 +19,7 @@ int shift(FILE* fid, unsigned long len, size_t pos, char direction){
 		copyPos = pastePos + (size_t)len;
 	}
 
-	while(copyPos >= pos){
+	while((copyPos || direction) && (copyPos >= pos)){
 		fseek(fid, copyPos, SEEK_SET);
 		c = fgetc(fid);
 		fseek(fid, pastePos, SEEK_SET);
@@ -46,31 +46,27 @@ int paste(FILE* fid, char* str, long len, size_t pos){
 	fputs(str, fid);
 	return 0;
 }
-
+int copy(FILE* fid, long len, size_t cPos, char ** str){
+	int count = 0;
+	fseek(fid, cPos, SEEK_SET);
+	while(count < len){
+		*str = (char *)realloc(*str, sizeof(char)*(count+1));
+		(*str)[count] = fgetc(fid);
+		count++;
+	}
+	*str = (char *)realloc(*str, sizeof(char)*(count+1));
+	(*str)[count] = '\0';
+	return 0;
+}
 int delete(FILE** fid, long len, size_t pos){
-	int endPos;
+	char *content = NULL;
+
 	shift(*fid, len, pos, 1);
 	fseek(*fid, -1*len, SEEK_END);
-	endPos = ftell(*fid);
-	rewind(*fid);
-	FILE * newfile = fopen("temp", "w");
-	while (ftell(*fid) < endPos){
-		fprintf(newfile, "%c", fgetc(*fid));
-	}
-	fclose(newfile);
-    newfile = NULL;
-	newfile = fopen("temp", "r");
-	fseek(newfile, 0, SEEK_END);
-	endPos = ftell(newfile);
-	rewind(newfile);
-	/*No other function offers direct deleting, so manual writing to temp file then writing that back to original file*/
-	*fid = freopen(NULL, "w+", *fid);
-	while (ftell(newfile) < endPos){
-		fprintf(*fid, "%c", fgetc(newfile));
-	}
+	copy(*fid, ftell(*fid), 0, &content);
+	*fid = freopen(NULL, "w+", *fid);	
+	fprintf(*fid, "%s", content);
 	*fid = freopen(NULL, "r+", *fid);
-	fclose(newfile);
-    newfile = NULL;
 	return 0;
 }
 
@@ -100,22 +96,9 @@ int display(FILE* fid){
 	return 0;
 }
 
-int copy(FILE* fid, long len, size_t cPos, char ** str){
-	int count = 0;
-	fseek(fid, cPos, SEEK_SET);
-	while(count < len){
-		*str = (char *)realloc(*str, sizeof(char)*(count+1));
-		(*str)[count] = fgetc(fid);
-		count++;
-	}
-	*str = (char *)realloc(*str, sizeof(char)*(count+1));
-	(*str)[count] = '\0';
-	return 0;
-}
-
 int cut(FILE** fid, long len, size_t cPos, char **str){
-    copy(*fid, len, cPos, str);
-    delete(fid, len, cPos);
+	copy(*fid, len, cPos, str);
+	delete(fid, len, cPos);
 	return 0;
 }
 
@@ -138,7 +121,8 @@ int main(){
                 printf("\tPosition: ");
                 scanf(" %zu", &pos);
                 printf("\tString: ");
-                scanf(" %s", str);
+                scanf(" %[^\n]", str);
+                shift(fid, strlen(str), pos, 0);
                 fseek(fid, pos, SEEK_SET);
                 fprintf(fid, "%s", str);
                 printf("\tText Added\n");
@@ -149,7 +133,7 @@ int main(){
 		case '1':
 			if(fid == NULL){
 				printf("\tFilename: ");
-				scanf(" %s", &str);
+				scanf(" %[^\n]", &str);
 				fid = fopen(str, "w+");
 				fid = freopen(NULL, "r+", fid);
 				if(fid != NULL){
@@ -164,7 +148,7 @@ int main(){
 		case '2':
 			if(fid == NULL){
 				printf("\tFilename: ");
-				scanf(" %s", &str);
+				scanf(" %[^\n]", &str);
 				fid = fopen(str, "r+");
 				if(fid != NULL){
 					printf("\tFile successfully opened\n");
@@ -178,7 +162,7 @@ int main(){
 		case '3':
             if(fid != NULL){
                 printf("\tNew Filename: ");
-                scanf(" %s", &str);
+                scanf(" %[^\n]", &str);
                 saveas(fid, str);
             }else{
                 printf("\tNo file open\n");
@@ -204,6 +188,7 @@ int main(){
                 printf("\tLength: ");
                 scanf(" %ld", &len);
                 free(clipboard);/*to avoid memory leak*/
+                clipboard = NULL;
                 cut(&fid, len, pos, &clipboard);
                 printf("\tText Cut: %s\n", clipboard);
             }
@@ -219,6 +204,7 @@ int main(){
                 printf("\tLength: ");
                 scanf(" %zu", &len);
                 free(clipboard);/*to avoid memory leak*/
+                clipboard = NULL;
                 copy(fid, len, pos, &clipboard);
                 printf("\tText Copied: %s\n", clipboard);
             }
