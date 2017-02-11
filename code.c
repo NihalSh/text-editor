@@ -188,7 +188,7 @@ int main(){
                 printf("\tPosition: ");
                 scanf(" %zu", &pos);
                 printf("\tLength: ");
-                scanf(" %zu", &len);
+                scanf(" %ld", &len);
                 free(clipboard);/*to avoid memory leak*/
                 cut(&fid, len, pos, &clipboard);
                 printf("\tText Cut: %s\n", clipboard);
@@ -222,7 +222,19 @@ int main(){
                 printf("\tText Pasted\n");
             }
             break;
-    	case '8': printf("op: %c\n", op);
+    	case '8':
+            if(fid != NULL){
+                long len;
+                size_t pos;
+                printf("\tPosition: ");
+                scanf(" %zu", &pos);
+                printf("\tLength: ");
+                scanf(" %ld", &len);
+                delete(&fid, len, pos);
+                printf("\tText Deleted\n");
+            }else{
+                printf("\tNo file is open\n");
+            }
 			break;
 		case '9':
 			if(fid != NULL){
