@@ -105,15 +105,6 @@ int cut(FILE** fid, long len, size_t cPos, char **str){
 	return 0;
 }
 
-int openFile(FILE** fid, char * filename){
-	*fid = fopen(filename, "r+");
-	if(fid != NULL){
-		return 0;
-	}else{
-		return 1;
-	}
-};
-
 int main(){
 	int op;
 	FILE* fid = NULL;
@@ -124,8 +115,8 @@ int main(){
 	size_t len;
 	printf("Text Editor\n");
 	/*There is no save operation because all the operations are done on the file, that is file is not loaded to memory*/
-	printf("Options:\n\t1 New\n\t2 Open File\n\t3 Save As\n\t4 Save and Close File\n\t5 Copy Text\n\t6 Cut Text\n\t7 Delete Text\n\t8 Display Content\n\t9 Quit\n\nOption: ");
-	while((op = getchar()) != '9'){
+	printf("Options:\n\t1 New\n\t2 Open\n\t3 Save As\n\t4 Save and Close\n\t5 Cut\n\t6 Copy\n\t7 Paste\n\t8 Delete Text\n\t9 Display Content\n\t0 Quit\n\nOption: ");
+	while((op = getchar()) != '0'){
 		switch(op){
 		case '1':
 			if(fid == NULL){
@@ -169,21 +160,6 @@ int main(){
 			break;
 		case '5':
             if(fid == NULL){
-                printf("\tNo file is open\n");
-            }else{
-                size_t pos;
-                long len;
-                printf("\tPosition: ");
-                scanf(" %zu", &pos);
-                printf("\tLength: ");
-                scanf(" %zu", &len);
-                free(clipboard);/*to avoid memory leak*/
-                copy(fid, len, pos, &clipboard);
-                printf("\tCopied the text to clipboard: %s\n", clipboard);
-            }
-			break;
-		case '6':
-            if(fid == NULL){
                 printf("\tNo file open\n");
             }else{
                 size_t pos;
@@ -194,12 +170,40 @@ int main(){
                 scanf(" %zu", &len);
                 free(clipboard);/*to avoid memory leak*/
                 cut(&fid, len, pos, &clipboard);
-                printf("\tMoved the text to clipboard: %s\n", clipboard);
+                printf("\tText Cut: %s\n", clipboard);
             }
 			break;
-		case '7': printf("op: %c\n", op);
+		case '6':
+            if(fid == NULL){
+                printf("\tNo file is open\n");
+            }else{
+                size_t pos;
+                long len;
+                printf("\tPosition: ");
+                scanf(" %zu", &pos);
+                printf("\tLength: ");
+                scanf(" %zu", &len);
+                free(clipboard);/*to avoid memory leak*/
+                copy(fid, len, pos, &clipboard);
+                printf("\tText Copied: %s\n", clipboard);
+            }
 			break;
-		case '8':
+        case '7':
+            if(fid == NULL){
+                printf("\tNo file is open\n");
+            }else if(clipboard == NULL){
+                printf("\tClipboard blank\n");
+            }else{
+                size_t pos;
+                printf("\tPosition: ");
+                scanf(" %zu", &pos);
+                paste(fid, clipboard, strlen(clipboard), pos);
+                printf("\tText Pasted\n");
+            }
+            break;
+    	case '8': printf("op: %c\n", op);
+			break;
+		case '9':
 			if(fid != NULL){
 				display(fid);
 			}else{
@@ -212,8 +216,10 @@ int main(){
 		FLUSH;
 		printf("Option: ");
 	}
-    fclose(fid);
-    fid = NULL;
+    if(fid != NULL){
+        fclose(fid);
+        fid = NULL;
+    }
     free(clipboard);
     clipboard = NULL;
 	return 0;
