@@ -74,6 +74,20 @@ int delete(FILE** fid, long len, size_t pos){
 	return 0;
 }
 
+int saveas(FILE* fid, char* str){
+    int c;
+    FILE* newfile = fopen(str, "w+");
+    if(newfile != NULL){
+        while((c = fgetc(fid)) != EOF){
+            fprintf(newfile, "%c", c);
+        }
+        fclose(newfile);
+        return 0;
+    }else{
+        return 1;
+    }
+}
+
 int display(FILE* fid){
 	int c;
 	rewind(fid);
@@ -147,7 +161,14 @@ int main(){
 				printf("\tA file is already open\n");
 			}
 			break;
-		case '3': printf("op: %c\n", op);
+		case '3':
+            if(fid != NULL){
+                printf("\tNew Filename: ");
+                scanf(" %s", &str);
+                saveas(fid, str);
+            }else{
+                printf("\tNo file open\n");
+            }
 			break;
 		case '4':
 			if(fid == NULL){
