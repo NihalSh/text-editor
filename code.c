@@ -87,19 +87,16 @@ int display(FILE* fid){
 	return 0;
 }
 
-int copy(FILE* fid, long len, size_t cPos, size_t pPos){
+int copy(FILE* fid, long len, size_t cPos, char ** str){
 	int count = 0;
-	char * str = NULL;
 	fseek(fid, cPos, SEEK_SET);
 	while(count < len){
-		str = (char *)realloc(str, sizeof(char)*(count+1));
-		str[count] = fgetc(fid);
+		*str = (char *)realloc(*str, sizeof(char)*(count+1));
+		(*str)[count] = fgetc(fid);
 		count++;
 	}
-	str = (char *)realloc(str, sizeof(char)*(count+1));
-	str[count] = '\0';
-	paste(fid, str, len, pPos);
-	free(str);
+	*str = (char *)realloc(*str, sizeof(char)*(count+1));
+	(*str)[count] = '\0';
 	return 0;
 }
 
@@ -107,7 +104,7 @@ int cut(FILE* fid, long len, size_t cPos, size_t pPos){
 	if (cPos > pPos){
 	/*original cut position is altered*/
 	}else{
-		
+
 	}
 	return 0;
 }
@@ -126,6 +123,7 @@ int main(){
 	FILE* fid = NULL;
 /*	FILE* fid = fopen("file1", "r+");*/
 	char str[50];
+    char *clipboard = NULL;
 	long int pos;
 	size_t len;
 	printf("Text Editor\n");
@@ -173,7 +171,19 @@ int main(){
 				printf("\tFile closed\n");
 			}
 			break;
-		case '5': printf("op: %c\n", op);
+		case '5':
+            if(fid == NULL){
+                printf("\tNo file is open\n");
+            }else{
+                size_t pos;
+                long len;
+                printf("\tPosition: ");
+                scanf(" %zu", &pos);
+                printf("\tLength: ");
+                scanf(" %zu", &len);
+                copy(fid, len, pos, &clipboard);
+                printf("\tCopied the text to clipboard: %s\n", clipboard);
+            }
 			break;
 		case '6': printf("op: %c\n", op);
 			break;
@@ -194,12 +204,12 @@ int main(){
 	}
 	/*paste(fid, "hello", 5, 2);*/
 	/*delete(&fid, 5, 2);*/
-	
+
 	/*
 	display(fid);
 	copy(fid, 6, 0, 6);
 	display(fid);*/
-	
+
 	/*fseek(fid, -1, SEEK_END);
 	c = fgetc(fid);
 	printf("%c", c);
@@ -211,7 +221,7 @@ int main(){
 	scanf(" %s", str);
 	len = strlen(str);
 	printf("%zu\n", len);
-	
+
 	fseek(fid, , SEEK_END);
 	c = fgetc(fid);
 	printf("%c\n", c);
