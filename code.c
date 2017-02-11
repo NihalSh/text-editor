@@ -13,12 +13,10 @@ int shift(FILE* fid, unsigned long len, size_t pos, char direction){
 		fseek(fid, -1, SEEK_END);
 		copyPos = ftell(fid);
 		pastePos = copyPos + len;
-		printf("%lu %lu %lu\n", pastePos, copyPos, len);
 	} else{
 		fseek(fid, pos, SEEK_SET);
 		pastePos = ftell(fid);
 		copyPos = pastePos + (size_t)len;
-		printf("%lu %lu %lu\n", pastePos, copyPos, len);
 	}
 
 	while(copyPos >= pos){
@@ -60,6 +58,7 @@ int delete(FILE** fid, long len, size_t pos){
 		fprintf(newfile, "%c", fgetc(*fid));
 	}
 	fclose(newfile);
+    newfile = NULL;
 	newfile = fopen("temp", "r");
 	fseek(newfile, 0, SEEK_END);
 	endPos = ftell(newfile);
@@ -67,11 +66,11 @@ int delete(FILE** fid, long len, size_t pos){
 	/*No other function offers direct deleting, so manual writing to temp file then writing that back to original file*/
 	*fid = freopen(NULL, "w+", *fid);
 	while (ftell(newfile) < endPos){
-		printf("X\n");
 		fprintf(*fid, "%c", fgetc(newfile));
 	}
 	*fid = freopen(NULL, "r+", *fid);
 	fclose(newfile);
+    newfile = NULL;
 	return 0;
 }
 
@@ -100,12 +99,9 @@ int copy(FILE* fid, long len, size_t cPos, char ** str){
 	return 0;
 }
 
-int cut(FILE* fid, long len, size_t cPos, size_t pPos){
-	if (cPos > pPos){
-	/*original cut position is altered*/
-	}else{
-
-	}
+int cut(FILE** fid, long len, size_t cPos, char **str){
+    copy(*fid, len, cPos, str);
+    delete(fid, len, cPos);
 	return 0;
 }
 
@@ -181,11 +177,25 @@ int main(){
                 scanf(" %zu", &pos);
                 printf("\tLength: ");
                 scanf(" %zu", &len);
+                free(clipboard);/*to avoid memory leak*/
                 copy(fid, len, pos, &clipboard);
                 printf("\tCopied the text to clipboard: %s\n", clipboard);
             }
 			break;
-		case '6': printf("op: %c\n", op);
+		case '6':
+            if(fid == NULL){
+                printf("\tNo file open\n");
+            }else{
+                size_t pos;
+                long len;
+                printf("\tPosition: ");
+                scanf(" %zu", &pos);
+                printf("\tLength: ");
+                scanf(" %zu", &len);
+                free(clipboard);/*to avoid memory leak*/
+                cut(&fid, len, pos, &clipboard);
+                printf("\tMoved the text to clipboard: %s\n", clipboard);
+            }
 			break;
 		case '7': printf("op: %c\n", op);
 			break;
@@ -202,42 +212,10 @@ int main(){
 		FLUSH;
 		printf("Option: ");
 	}
-	/*paste(fid, "hello", 5, 2);*/
-	/*delete(&fid, 5, 2);*/
-
-	/*
-	display(fid);
-	copy(fid, 6, 0, 6);
-	display(fid);*/
-
-	/*fseek(fid, -1, SEEK_END);
-	c = fgetc(fid);
-	printf("%c", c);
-	fseek(fid, 0, SEEK_END);
-	fputc(c, fid);
-	/*printf("Enter Position: ");
-	scanf(" %lu", &pos);
-	printf("Enter String: ");
-	scanf(" %s", str);
-	len = strlen(str);
-	printf("%zu\n", len);
-
-	fseek(fid, , SEEK_END);
-	c = fgetc(fid);
-	printf("%c\n", c);
-	/*c = '6';
-	fputc(c, fid);*/
+    fclose(fid);
+    fid = NULL;
+    free(clipboard);
+    clipboard = NULL;
 	return 0;
 }
 
-/*
-Copy:
-	prompt user to select starting 'position' and 'length'
-	prompt user to enter destination position
-	forward shift from destination position to length
-
-cut:
-	prompt user to select starting 'position' and 'length'
-	prompt user to enter destination position
-	use delete after copying to destionation position
-*/
