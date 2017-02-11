@@ -129,9 +129,23 @@ int main(){
 	size_t len;
 	printf("Text Editor\n");
 	/*There is no save operation because all the operations are done on the file, that is file is not loaded to memory*/
-	printf("Options:\n\t1 New\n\t2 Open\n\t3 Save As\n\t4 Save and Close\n\t5 Cut\n\t6 Copy\n\t7 Paste\n\t8 Delete Text\n\t9 Display Content\n\t0 Quit\n\nOption: ");
-	while((op = getchar()) != '0'){
+    printf("Options:\n\t1 New\n\t2 Open\n\t3 Save As\n\t4 Save and Close\n\t5 Cut\n\t6 Copy\n\t7 Paste\n\t8 Delete Text\n\t9 Display Content\n\t0 Add Text\n\tq Quit\n\nOption: ");
+	while((op = getchar()) != 'q'){
 		switch(op){
+        case '0':
+            if(fid != NULL){
+                size_t pos;
+                printf("\tPosition: ");
+                scanf(" %zu", &pos);
+                printf("\tString: ");
+                scanf(" %s", str);
+                fseek(fid, pos, SEEK_SET);
+                fprintf(fid, "%s", str);
+                printf("\tText Added\n");
+            }else{
+                printf("\tNo file is open\n");
+            }
+            break;
 		case '1':
 			if(fid == NULL){
 				printf("\tFilename: ");
